@@ -1,0 +1,211 @@
+---
+title: "Assessment 1.1"
+author: "Sabina4651666"
+date: "25/08/2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+####Part 1 
+# R Markdown editing
+#Step 2,3,4
+
+*R Markdown is a file format for making dynamic documents with R.* 
+**An R Markdown document is written in markdown (an easy-to-write plain text format) and contains chunks of embedded R code, like the document below.**
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r} 
+#Step 5,6: Creating Variable with given data set fastfood
+
+fastfood<-read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-09-04/fastfood_calories.csv")
+```
+
+
+```{r}
+library(knitr)
+```
+
+```{r}
+# Step 7: first 10 rows of fast food
+
+fastfood%>%head(10)
+```
+
+
+```{r}
+#Using kable: showing first 5 variable
+
+ knitr::kable(head(fastfood[1:10, 1:5]),"pipe")
+```
+ 
+```{r}
+#Step8:observation for calories more than 1000
+
+ fastfood%>%filter(calories>1000)
+```
+
+
+```{r}
+# Step 9: creating new variable donot eat this which is assign to fast food obseving total fat>40 and total carb>80
+
+dont_eat_this <- fastfood%>%filter( total_fat>40 & total_carb>80)
+dont_eat_this
+```
+
+
+```{r}
+#Step 10: Obeservation of Mcdonalds
+
+filter(fastfood, restaurant=="Mcdonalds")
+```
+
+
+```{r} 
+###Part2
+library(skimr)
+```
+
+```{r}
+#Step11: skim fastfood
+
+skim(fastfood)
+```
+
+```{r}
+# question12; the count of observations for each restaurant.
+fastfood%>%count(restaurant)%>%
+  kable()
+
+```
+  
+  
+```{r}
+#Step 13: grouping restaurant that summaries and display average number of calories intake
+
+fastfood%>%group_by(restaurant)%>%summarise(average_calories=mean(calories))%>%ungroup%>%arrange(desc(average_calories))%>%kable()
+```
+
+
+                        
+
+
+```{r}
+
+#Step 14 : creating variables average calories that is assign to average calories of restaurant
+
+average_calories<-fastfood%>%group_by(restaurant)%>%
+ summarise(average_calories=mean(calories))%>%
+  ungroup%>%arrange(desc(average_calories))
+
+```
+
+
+
+```{r}
+#Step15:data visualization of total fat per each type of restaurant
+
+ggplot(fastfood, aes(restaurant, total_fat))+
+         geom_bar(stat = 'identity')
+
+##This visualization helps to understand the total fat consumption per each restaurant. I think this type of visualization is best as it helps us to gain the information through visual context using graph and map.
+```
+
+
+
+```{r}
+#Step16: creating data variables calculating maximum total fat 
+sum_total_fat<-fastfood%>%group_by(restaurant)%>%
+  mutate(sum_total_fat=sum(total_fat))
+
+```
+
+```{r}
+library(ggplot2)
+
+```
+
+
+```{r}
+#Step17: data visualization for Mcdonalds plotting sugar variable against protein
+
+ggplot(filter(fastfood, restaurant=="Mcdonalds"), aes(x=sugar,y=protein, color()))+
+  geom_point()
+```
+
+
+###Part 3
+```{r}
+##Step18
+##The variable which should be factor and transforming their type into factor variable
+str(fastfood)
+fastfood$restaurant<-as.factor(fastfood$restaurant)
+```
+```{r}
+##Step 19
+## Creating "calories_type" with cut number that is adding Variables into Data
+calories_type<- cut_number (fastfood$calories, n=3, labels=c("low", "med" , "high"))
+
+levels(calories_type)
+
+fastfood<-fastfood %>% mutate(calories_type)
+
+```
+
+
+
+
+```{r}
+##Step 20 
+##Showing calories_type` in food items for each type of restaurant.  Using facets, coordinates and theme layers.
+fastfood%>% 
+count(restaurant,calories_type, sort=TRUE)%>%ggplot(aes(calories_type,n,colour=calories_type))+
+  facet_wrap(restaurant~.)+
+  theme(legend.position = "none") +
+  geom_col() +
+  geom_text(aes(label = round(n, digits = 2)),vjust =-0.6, color="grey") +
+  labs(x=" ", y=" " )
+```
+  
+  
+  
+```{r}
+##Step 21 Running package formattable for calculating percent
+library("formattable")
+
+
+
+```
+
+
+
+```{r}
+##Step21
+##New variable naming trans_fat_percent that show the percentage of `trans_fat` in total_fat
+trans_fat_percent<-fastfood %>% 
+group_by(restaurant) %>%
+mutate(trans_fat_percent = percent(trans_fat/total_fat *10)) %>%
+ ungroup()
+```
+
+```{r}
+##Step22
+ ##data visualization that shows the distribution of trans_fat
+ggplot(fastfood, aes(trans_fat, restaurant, color=restaurant))+
+  geom_col()+
+  coord_flip()+
+  theme_linedraw()
+```
+
+
+```{r}
+##Step23
+##average total_fat for each type of restaurant
+fastfood%>%group_by(restaurant)%>%
+  summarise(total_fat=mean(total_fat))
+```
