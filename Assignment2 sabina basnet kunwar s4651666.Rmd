@@ -1,0 +1,187 @@
+---
+title: "Assignment2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## *Sabina Basnet Kunwar*
+## **s4651666**
+![](zoom profile.jpeg)
+```{r echo=FALSE}
+data<-read.csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-11-20/thanksgiving_meals.csv"
+)
+```
+
+### Question 1: Display the first 10 rows of the dataset using `kable()` function 
+
+```{r}
+knitr::kable(head(data,n=10,caption="First 10 rows"))
+
+```
+
+### Question 2: Using `skim()` display the summary of variables
+
+```{r}
+library(skimr)
+skim(data)
+```
+Here, it can be said that in order to predict the family income based on their menu, variable such as, 'main_dish', 'main_prep', 'stuffing', 'gravy' etc can be used. However, the skim() function indicates that all the variables are of character type. It means, none of the variables are in right format to predict the family income. Therefore, all the variables needs to be recoded to build prediction model. 
+
+
+### Question 3: Use `fct_reorder` and `parse_number` functions to create a factor variable `family_income`
+
+```{r}
+library(dplyr)
+data$family_income<-recode(data$family_income,"$0 to $9,999"=9999,"$10,000 to $24,999"=24999,"$25,000 to $49,999"=49999,"$50,000 to $74,999"=74999,"$75,000 to $99,999"=99999,
+           "$100,000 to $124,999"=124999,"$125,000 to $149,999"=149999,"$150,000 to $174,999"=174999,"$175,000 to $199,999"=199999,
+           "$200,000 and up"=200000,"Prefer not to answer"=0)
+head(data)
+```
+
+### Question 4: What is the number of people who celebrate?
+
+```{r}
+print("People who celebrate")
+table(data$celebrate)
+```
+
+
+### Question 5:  What are categories and insights for each main dish served and the method it is prepared?
+
+```{r}
+library(sjPlot)
+sjPlot::tab_xtab(var.row = data$main_dish, var.col = data$main_prep, show.row.prc = TRUE)
+```
+
+### Question 6: Create 3 different data viz showing insights for main dish served and the method. Provide your own legend and use themes
+
+
+```{r fig.width = 16}
+library(ggplot2)
+library("tidyverse") 
+library("scales") 
+library("stringr") 
+library("ggthemes")
+object <- table(data$main_dish, data$main_prep)
+tb.prop <- prop.table(object, 1)
+tb.df <- as.data.frame(tb.prop)
+names(tb.df) <- c("Main_dish", "main_prep", "Frequency")
+ggplot(tb.df, aes(x=Main_dish, y=Frequency, fill=main_prep)) + geom_col()
+```
+
+Here, the first graph is a stacked column chart. Stacked column graphs function admirably when the focal point of the outline is to analyze the aggregates and one piece of the sums. It's difficult for reader to think about sections that don't begin at a similar gauge. On the off chance that the focal point of your diagram is to think about various parts across the entirety of your sums with one another, consider split bars or little products all things being equal. Stacked segment graph can function admirably for dates, however ought to possibly be thought of if the absolute of your parts is urgent. In the event that the all out of your parts isn't significant, a line graph is a superior decision. It tends to be speedier understandable by the reader
+
+```{r fig.width = 16}
+ggplot(tb.df, aes(x=Main_dish, y=Frequency, fill=main_prep)) +
+  geom_col(position="dodge")
+```
+
+Here, the second graph is group column chart. The grouped column chart presents quantitative values for categories and additional categorical dimensions. This is ideal as the analyst want to give a quick overview of something as the analyst would do with a bar chart or column chart but add more information with the help of additional columns.
+
+```{r fig.width = 16}
+ggplot(tb.df, aes(x=Main_dish, y=Frequency, color=main_prep, group=main_prep)) +
+  geom_line()
+```
+
+Finally, this is group line chart. This type of chart is used to show the trend over a category or specific time frame.
+
+### Question 7: How many use cranberry sauce? How many use gravy?
+
+```{r}
+table(data$cranberry)
+```
+
+```{r}
+table(data$gravy)
+```
+
+### Question 8:  What is the distribution of those who celebrate across income ranges. Create a data viz.
+
+```{r fig.width = 16}
+object1<-table(data$family_income,data$celebrate)
+object1
+```
+
+This particular graph is showing the distribution of those who celebrate across income ranges. From this graph it is noted that the income group 175000-199999 has the lowest number people who celebrates. While, the study has shown that 25000-49999 has the highest number of people who celebrates.
+
+### Question 9: Present this information in the most evident way on the data viz. 
+
+```{r fig.width=16}
+tb.prop <- prop.table(object1, 1)
+tb.df <- as.data.frame(tb.prop)
+names(tb.df) <- c("family_income", "celebrate", "Frequency")
+ggplot(tb.df, aes(x=family_income, y=Frequency, fill=celebrate)) + geom_col()
+```
+
+### Question 10: What are the most common pies, sides, and desserts?
+
+```{r}
+#install.packages("lpyr")
+library ('plyr')
+side<-subset(data,select=c("side1","side2","side3","side4","side5","side6","side7","side8","side9","side10","side11","side12","side13","side14","side15"))
+freq <- sapply(side, 
+               function(x) table(factor(x, 
+                                        ordered = TRUE)))
+freq
+```
+
+The above code chunk creates a data table with combining sveral variables such as side 1, side 2 etc and the highest number of side is Mashed potatoes = 817 times
+
+```{r}
+pie<-subset(data,select=c("pie1","pie2","pie3","pie4","pie5","pie6","pie7","pie8","pie9","pie10","pie11","pie12"))
+freq <- sapply(pie, 
+               function(x) table(factor(x, 
+                                        ordered = TRUE)))
+freq
+
+```
+
+highest number of pie is Pumpkin = 729
+
+```{r}
+dessert<-subset(data,select=c("dessert1","dessert2","dessert3","dessert4","dessert5","dessert6","dessert7","dessert8","dessert9","dessert10","dessert11","dessert12"))
+freq <- sapply(dessert, 
+               function(x) table(factor(x, 
+                                        ordered = TRUE)))
+freq
+```
+highest number of pie is Ice Cream = 266
+
+
+
+### Question 11: Present this information on a data viz
+
+```{r}
+name<-c("side","pie","dessert")
+value<-c(817,729,266)
+df<-data.frame(name,value)
+barplot(df$value,main = "Most common sides, pie and dessert",
+xlab = "Types",
+ylab = "frequency",
+names.arg = c("side", "pie", "dessert"),
+col = "darkred")
+```
+
+highest number of side is 817, highest number of pie is 729 and the highest number of dessert is 266
+
+### Question 13: How do the servings differ by income?
+
+```{r}
+object2<-table(data$main_dish,data$family_income)
+object2
+```
+
+It can be said that the serving of different dishes follows a scatter disstribution based on income level. There is no specific distribution type for this.
+
+### Question 14: Present this information on a data viz
+
+```{r fig.width=16}
+tb.prop <- prop.table(object2, 1)
+tb.df <- as.data.frame(tb.prop)
+names(tb.df) <- c("family_income", "main_dish", "Frequency")
+ggplot(tb.df, aes(x=family_income, y=Frequency, fill=main_dish)) + geom_col()
+```
+
