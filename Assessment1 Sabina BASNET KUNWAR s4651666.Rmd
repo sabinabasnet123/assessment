@@ -1,0 +1,120 @@
+---
+title: "Assessment 1"
+author: "Sabina4651666"
+date: "25/08/2021"
+output: html_document
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+####Part 1   
+# R Markdown editing
+
+*R Markdown is a file format for making dynamic documents with R.* 
+**An R Markdown document is written in markdown (an easy-to-write plain text format) and contains chunks of embedded R code, like the document below.**
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r} 
+fastfood<-read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-09-04/fastfood_calories.csv")
+```
+
+
+```{r}
+library(knitr)
+```
+
+```{r}
+
+fastfood%>%head(10)
+```
+
+
+```{r}
+ knitr::kable(head(fastfood[1:10, 1:5]),"pipe")
+```
+ 
+```{r}
+ fastfood%>%filter(calories>1000)
+```
+
+
+```{r}
+dont_eat_this <- fastfood%>%filter( total_fat>40 & total_carb>80)
+dont_eat_this
+```
+
+
+```{r}
+
+filter(fastfood, restaurant=="Mcdonalds")
+```
+
+###Part2
+```{r}
+library(skimr)
+```
+
+```{r}
+skim(fastfood)
+```
+
+```{r}
+##Count of each restaurant
+fastfood%>%count(restaurant)%>%
+  kable()
+
+```
+  
+  
+```{r}
+fastfood%>%group_by(restaurant)%>%summarise(average_calories=mean(calories))
+```
+
+```{r}
+fastfood%>%group_by(restaurant)%>%summarise(average_calories=mean(calories))%>%ungroup%>%arrange(desc(average_calories))%>%kable()
+```
+
+
+                        
+
+
+
+```{r}
+average_calories<-fastfood%>%group_by(restaurant)%>%mutate(average_calories=mean(calories))%>%ungroup%>%arrange(desc(average_calories))
+
+average_calories
+```
+
+
+
+```{r}
+ggplot(fastfood, aes(restaurant, total_fat))+
+         geom_point()
+
+##This visualization helps to understand the total fat consumption per each restaurant. I think this type of visualization is best as it helps us to determine the fat consumed on every restaurant.
+```
+
+
+
+```{r}
+max_total_fat<-fastfood%>%group_by(restaurant)%>%mutate(max_total_fat=max(total_fat))%>%ungroup%>%arrange(desc(max_total_fat))
+
+```
+
+```{r}
+library(ggplot2)
+
+```
+
+
+```{r}
+ggplot(filter(fastfood, restaurant=="Mcdonalds"), aes(x=sugar,y=protein))+
+  geom_point()
+```
