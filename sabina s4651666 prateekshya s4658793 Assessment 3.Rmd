@@ -1,0 +1,251 @@
+---
+title: "Assessment3Final"
+author: "Sabina4651666$Pratikshya4658793 Assignment3"
+date: "13/09/2021"
+output: html_document
+---
+
+#*Reports on CO2 Emission through Food Consumption * #
+
+
+*Introduction*
+
+The global impacts on environment such as climate change, acid rain, melting of polar ice, rising sea levels, etc has occurred due to excessive increase in volume of the Carbon di-oxide gas in the atmosphere (Climate change consequences - Climate Action - European Commission, 2021).
+Apart from fossils fuels, industries and vehicles, food sources and its consumption also contributes to the volume of CO2 in the atmosphere. 
+Carbon dioxide from the food we consume has a huge impact in the environment.
+Food system activities, including producing food, packaging, transporting, storing and dumping wasted food in landfills, produce greenhouse gas (GHG) that contributes to climate change.
+So, from this data Analysis we are going to observe the co-relation between the Carbon dioxide gas emission from various food categories.
+
+
+
+
+**ABOUT THE DATASET**
+
+The dataset explores the four different variable that is country, food category, carbondioxide gas emission volume and volume of food consumption with which we are analysing main question and 3 sub question 
+
+
+
+
+
+```{r}
+
+library(tidyverse)
+library(knitr)
+
+library(ranger)
+
+```
+
+
+```{r}
+food_co2 <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-18/food_consumption.csv')
+
+```
+
+DATA CLEANSING
+Before we start our data analysis, there are some cleaning to be done in this dataset.
+
+1. Edit the variable names
+
+Currently, there are 3 variables named as - "food_category", "consumption" & "co2_emmission". These are difficult and confusing to understand.
+
+Let's change the variable names from all UPPERCASE to all lowercase:
+
+```{r} 
+names(food_co2)<-tolower(names(food_co2))
+
+names(food_co2)<-str_replace(names(food_co2)," ", "_")
+food_co2
+
+food_co2<- food_co2 %>%setNames(c( "country","food_type", "food_volume", "emission"))
+
+food_co2
+
+food_co2<- food_co2 %>%
+  mutate_if(is.character, factor)
+```
+
+
+-------------------------------------------------------------------------
+*ASKING QUESTIONS*
+**Main Reseaerch Question**
+  
+Can we predict the final Carbon dioxide emission by knowing their food type and volume of consumed food?
+
+**Sub-Questions**
+Q1. How many different types of food category are there?
+
+Q2. What is the relation between the total food consumption volume and the  total carbondioxide gas emission?
+
+
+Q3. Is there any relation between the total consumption and total carbondioxide gas emission dependent on food type?
+-------------------------------------------------------------------------
+
+*DESCRIPTIVE or EXPLORATORY ANALYSIS*
+Now let's explore the data by finding the answer to the above sub questions.
+
+Q1. How many different types of food category are there?
+There ate 11 different types of food category and 136 country participated. 
+```{r}
+#Q1. How many different types of food category are there?
+
+# 11 different types of food category with 136 country have participated. 
+food_co2%>%
+  count(food_type)%>%
+  kable()
+
+```
+
+```{r}
+#Q2. What is the relationship between the total food volume and the total CO2 gas emission?
+
+
+library(ggplot2)
+food_co2%>%
+  ggplot(aes(food_volume,emission))+
+           geom_point() +
+           geom_smooth(method = lm, se = FALSE)
+
+##We can see that food_co2 that were larger in volume at the start of the experiment tended to have wider structures at the end. The slope of the line shows a positive relation between the food_volume and total CO2 gas emission.
+```
+Now, let's see if the above identified positive relation is dependent on the different feeding pattern - food_type.
+
+
+
+```{r}
+##Q3. Is there any relation between the total consumption and total carbondioxide gas emission dependent on food type?
+
+food_co2%>%
+  ggplot(aes( food_volume, emission, colour=food_type)) +
+           geom_point() +
+           geom_smooth(method = lm, se = FALSE)+
+           scale_color_viridis_d(option = "plasma", end = .7) +
+  labs(x = "food_volume", y = "emissionn", colour = "food_type", title = "food consumption depending upon fooding category")
+
+
+##yes, we can see that all the slopes shows a positive relation between co2 emission due to food consumption based on food categories.# 
+#The slope of non-veg food categories such as  beef, eggs, fish, lamb and goats tend to become much more wider than those of vegetarian categories.#
+#The food sources like meat including beef, fish, eggs and lamb and goats are highly consumed whereas the other plant-based products are consumed in a lesser ammount. Therefore the meat products , they have certain negative effects on atmosphere by excessive emission of co2. Whereas plant based products have lesser co2 emmission.#
+#On the other hand, the dairy produucts have mild effects on atmosphere by minimal emission of co2.
+# This also means that the total co2 emission are dependent on their food_type.#
+```
+
+
+**PREDICTIVE ANALYSIS**
+
+From our descriptive analysis, we have found that the final co2 emission of the food_CO2 can be predicted by knowing their food_volume and food_type. We will now build a model to make these predictions.
+
+We will be using Tidymodels.
+
+Step 1: Split the dataset into Training & Testing datasets.
+
+
+
+
+```{r}
+
+library(tidymodels)
+food_co2_split <- initial_split(food_co2)
+food_co2_train <- training(food_co2_split)
+food_co2_test <- testing(food_co2_split)
+```
+Step 2: Pre-process the data.
+2.1 Set the recipe & get the ingredients - recipe()
+For this modelling, we will use all the 3 variables from the dataset.
+
+Since we are predicting the final width of the urchins, width is our Output variable and the others are our Input variables or Predictors.
+
+
+```{r}
+food_co2_recipe<- recipe(food_volume~., data=food_co2_train)
+summary(food_co2_recipe)
+```
+
+
+2.2 Write the recipe steps - step_xxx()
+
+Success of modelling depends on the "quality" of data. To ensure this quality, there are few transformations that are necessary in our dataset.
+
+```{r}
+food_co2_recipe <- food_co2_recipe %>%
+  step_center(all_numeric(), -all_outcomes()) %>% 
+ step_scale(all_numeric(), -all_outcomes()) %>%
+   step_corr(all_numeric())
+
+
+```
+
+
+2.3 Get ready with the prep - prep()
+
+```{r}
+food_co2_prep <- prep(food_co2_recipe, training = food_co2_train)
+```
+
+
+2.4 Bake the recipe - bake()
+```{r}
+```{r}
+food_co2_bake <- bake(food_co2_prep, food_co2_train)
+
+food_co2_bake
+
+```
+
+
+
+
+*Step 3: Build a model*
+
+For this modelling, our Output variable is Numeric. So, we will use Regression.
+
+3.1 Set up the model [mode, model type & engine]
+
+```{r}
+model1 <- linear_reg() %>%
+  set_mode("regression") %>%
+  set_engine("lm")
+
+model1
+# Linear Regression Model Specification (regression)
+
+## Computational engine: lm
+```
+
+
+3.2 Fit the model
+
+```{r}
+model1_fitted <- model1 %>%
+  fit(emission ~ food_volume * food_type, data = food_co2_bake)
+
+summary(model1_fitted)
+
+```
+
+*Step 4: Create a workflow*
+
+We then create a workflow to save the recipe and the model together. This workflow can then be used in future with any new data.
+```{r}
+workflow <- workflow() %>%
+  add_recipe(food_co2_recipe) %>%
+  add_model(model1)
+  
+workflow
+```
+
+*Conclusion and future trends*
+
+-Moving to the plant based products will help in the reduction of carbondioxide gas emission. What people eat generally matters more for climate change than how far food travels. As more consumption of meat products increases the emission of carbon di-oxide gases, they need to focus on some vegan-diets, -replacing beef with beans, etc.
+-Save animals eat vegan might be the slogan for 22nd century.
+-Imposing higher carbon-tax on countries that produce huge amount of GHGs.So they might move into the alternatives that produce zero or minimal CO2.
+-Shop locally; most of the vegetables are produced locally whereas meat products are imported. so needs to give preferences on local shopping.
+-Avoid plastic packaging; similarly, meat products are packaged in plastics whereas fruits and vegetables are fresh and unpackaged. so needs to avoid plastic packaged products.
+
+#References#
+
+-P., 2021. 10 ways to cut your food carbon footprint. BBC goodfood, [online] Available at: <https://www.bbcgoodfood.com/howto/guide/how-cut-your-food-carbon-footprint> [Accessed 17 September 2021].
+
+-Climate Action - European Commission. [online] Available at: <https://ec.europa.eu/clima/change/consequences_en> [Accessed 17 September 2021].
+-----------------------------------------------------------------------------------------------------
+-Department of Agriculture, Water and the Environment. n.d. Department of Agriculture, Water and the Environment. [online] Available at: <https://www.environment.gov.au/climate-change/adaptation> [Accessed 17 September 2021].
